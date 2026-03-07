@@ -53,31 +53,38 @@
         </div>
     </div>
 
-    <!-- MAIN: Full screen map -->
-    <div id="map"></div>
-
-    <!-- Map overlays -->
-    <div class="map-overlay-top">
-        <div class="map-header">
-            <span class="logo-sm">NEARBY</span>
-            <div id="people-count" class="people-count"></div>
+    <!-- Layout: map top, list bottom -->
+    <div class="layout">
+        <!-- Map -->
+        <div class="map-wrap">
+            <div id="map"></div>
+            <div class="map-overlay-top">
+                <div class="map-header">
+                    <span class="logo-sm">NEARBY</span>
+                    <button class="btn-add" onclick="openJoinModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        ADD
+                    </button>
+                </div>
+                <div class="map-search">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" id="search-input" placeholder="Search: astronaut, ML, Tartu...">
+                </div>
+            </div>
         </div>
-        <div class="map-search">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" id="search-input" placeholder="Search: astronaut, ML, Tartu...">
+
+        <!-- People list -->
+        <div class="people-panel">
+            <div class="panel-header">
+                <span id="people-count">PEOPLE</span>
+            </div>
+            <div id="people-list" class="people-list">
+                <div class="list-empty" id="list-empty">
+                    <p>No one here yet</p>
+                    <p class="hint-sub">Tap ADD to be the first</p>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <!-- Add person button -->
-    <button id="btn-add" class="btn-add" onclick="openJoinModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        <span>ADD PERSON</span>
-    </button>
-
-    <!-- Bottom panel -->
-    <div id="map-panel" class="map-panel">
-        <div class="panel-handle"></div>
-        <div id="panel-content"></div>
     </div>
 
     <script src="/static/leaflet.js"></script>

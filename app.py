@@ -14,6 +14,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
 from pydantic import BaseModel
 import qrcode
 from dotenv import load_dotenv
@@ -163,8 +164,8 @@ class JoinRequest(BaseModel):
     name: str
     email: str
     bio: str = ""
-    latitude: float | None = None
-    longitude: float | None = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 class NearbyRequest(BaseModel):
     latitude: float

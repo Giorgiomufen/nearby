@@ -13,6 +13,7 @@
     --text-dim: rgba(240, 240, 250, 0.4);
     --text-mid: rgba(240, 240, 250, 0.6);
     --white: #ffffff;
+    --list-height: 40vh;
 }
 
 html, body {
@@ -28,23 +29,35 @@ body {
     line-height: 1.5;
 }
 
-/* ── Full screen map ───────────────────────────────────────────────── */
+/* ── Layout: map + list ────────────────────────────────────────────── */
+
+.layout {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.map-wrap {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+}
 
 #map {
     width: 100%;
-    height: 100vh;
+    height: 100%;
     background: #0d0d0d;
 }
 
-/* ── Map overlay top ───────────────────────────────────────────────── */
+/* ── Map overlays ──────────────────────────────────────────────────── */
 
 .map-overlay-top {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
-    padding: 16px;
+    padding: 12px;
     pointer-events: none;
 }
 
@@ -52,11 +65,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 .logo-sm {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 6px;
     color: var(--white);
@@ -64,15 +77,32 @@ body {
     pointer-events: auto;
 }
 
-.people-count {
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--text-mid);
-    background: rgba(0, 0, 0, 0.7);
-    padding: 5px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    text-transform: uppercase;
+.btn-add {
     pointer-events: auto;
+    background: var(--white);
+    color: #000;
+    border: none;
+    padding: 8px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    cursor: pointer;
+    font-family: inherit;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    transition: opacity 0.2s;
+}
+
+.btn-add svg {
+    width: 14px;
+    height: 14px;
+}
+
+.btn-add:hover {
+    opacity: 0.85;
 }
 
 .map-search {
@@ -82,7 +112,7 @@ body {
 
 .map-search input {
     width: 100%;
-    padding: 14px 16px 14px 44px;
+    padding: 12px 16px 12px 40px;
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -100,51 +130,140 @@ body {
 
 .search-icon {
     position: absolute;
-    left: 14px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     color: var(--text-dim);
     pointer-events: none;
 }
 
-/* ── Add person button ─────────────────────────────────────────────── */
+/* ── People list panel (bottom, always visible) ────────────────────── */
 
-.btn-add {
-    position: fixed;
-    bottom: 32px;
-    right: 24px;
-    z-index: 1000;
-    background: var(--white);
-    color: #000;
-    border: none;
-    padding: 14px 24px;
-    font-size: 12px;
-    font-weight: 600;
+.people-panel {
+    height: var(--list-height);
+    background: #0a0a0a;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.panel-header {
+    padding: 12px 16px 8px;
+    font-size: 11px;
     letter-spacing: 2px;
-    cursor: pointer;
-    font-family: inherit;
+    color: var(--text-dim);
     text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.people-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 8px 8px;
+}
+
+/* ── Person row (like Google Maps result) ──────────────────────────── */
+
+.person-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: opacity 0.2s, transform 0.2s;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    gap: 12px;
+    padding: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    transition: background 0.15s;
 }
 
-.btn-add svg {
-    width: 18px;
-    height: 18px;
+.person-row:hover {
+    background: rgba(255, 255, 255, 0.06);
 }
 
-.btn-add:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+.person-row.active {
+    background: rgba(255, 255, 255, 0.08);
 }
 
-.btn-add:active {
-    transform: translateY(0);
+.person-row .avatar-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+    flex-shrink: 0;
+}
+
+.person-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.person-name {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.person-role {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.person-tags {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.person-tags .tag {
+    padding: 1px 6px;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-dim);
+    text-transform: uppercase;
+}
+
+.person-dist {
+    font-size: 11px;
+    color: var(--text-mid);
+    letter-spacing: 1px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.list-empty {
+    text-align: center;
+    padding: 32px 16px;
+}
+
+.list-empty p {
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+.list-empty .hint-sub {
+    font-size: 12px;
+    margin-top: 4px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    opacity: 0.6;
 }
 
 /* ── Overlays / Modals ─────────────────────────────────────────────── */
@@ -241,7 +360,6 @@ textarea {
     font-family: inherit;
     transition: border-color 0.3s;
     outline: none;
-    letter-spacing: 0.02em;
 }
 
 input:focus, textarea:focus {
@@ -290,7 +408,6 @@ textarea:focus {
     background: var(--white);
     color: #000;
     border: none;
-    border-radius: 0;
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 3px;
@@ -304,7 +421,7 @@ textarea:focus {
     opacity: 0.85;
 }
 
-/* ── Cards ─────────────────────────────────────────────────────────── */
+/* ── Profile cards ─────────────────────────────────────────────────── */
 
 .card {
     background: var(--card);
@@ -362,8 +479,6 @@ textarea:focus {
 .card a:hover {
     color: var(--white);
 }
-
-/* ── Profile ───────────────────────────────────────────────────────── */
 
 .profile-header {
     text-align: center;
@@ -438,137 +553,7 @@ textarea:focus {
     color: var(--text-dim);
 }
 
-.tag-sm {
-    padding: 2px 8px;
-    font-size: 10px;
-}
-
-/* ── Map Panel (bottom sheet) ──────────────────────────────────────── */
-
-.map-panel {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.92);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    z-index: 1000;
-    max-height: 45vh;
-    overflow-y: auto;
-    transform: translateY(100%);
-    transition: transform 0.3s ease;
-}
-
-.map-panel.open {
-    transform: translateY(0);
-}
-
-.panel-handle {
-    width: 32px;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
-    margin: 10px auto;
-}
-
-#panel-content {
-    padding: 0 20px 24px;
-}
-
-.panel-hint {
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 13px;
-    padding: 16px 0;
-    letter-spacing: 0.5px;
-}
-
-.panel-person {
-    cursor: pointer;
-}
-
-.panel-person .person-header,
-.search-result {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.panel-person h3,
-.search-result h4 {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.panel-person .summary {
-    font-size: 13px;
-    color: var(--text-dim);
-    line-height: 1.6;
-    margin: 10px 0;
-}
-
-.avatar-sm {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--white);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: 600;
-    color: #000;
-    flex-shrink: 0;
-}
-
-.distance {
-    margin-left: auto;
-    font-size: 11px;
-    color: var(--text-mid);
-    font-weight: 500;
-    letter-spacing: 1px;
-    flex-shrink: 0;
-}
-
-.btn-view {
-    display: inline-block;
-    padding: 8px 20px;
-    border: 1px solid var(--white);
-    background: transparent;
-    color: var(--white);
-    font-size: 11px;
-    letter-spacing: 2px;
-    cursor: pointer;
-    font-family: inherit;
-    text-transform: uppercase;
-    transition: background 0.2s, color 0.2s;
-    margin-top: 8px;
-}
-
-.btn-view:hover {
-    background: var(--white);
-    color: #000;
-}
-
-.search-result {
-    padding: 14px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    cursor: pointer;
-}
-
-.search-result:last-child {
-    border-bottom: none;
-}
-
-.search-result .role {
-    font-size: 12px;
-    margin-top: 2px;
-}
-
-/* ── Leaflet custom markers ────────────────────────────────────────── */
+/* ── Leaflet markers ───────────────────────────────────────────────── */
 
 .person-marker, .user-marker {
     background: none !important;
@@ -590,7 +575,7 @@ textarea:focus {
 
 .marker-dot.highlighted {
     background: #4fc3f7;
-    box-shadow: 0 0 20px rgba(79, 195, 247, 0.7), 0 0 6px rgba(79, 195, 247, 0.9);
+    box-shadow: 0 0 20px rgba(79, 195, 247, 0.7);
     transform: scale(1.3);
 }
 
@@ -669,9 +654,7 @@ textarea:focus {
 
 /* ── Loading ───────────────────────────────────────────────────────── */
 
-#loading {
-    z-index: 3000;
-}
+#loading { z-index: 3000; }
 
 .loading-content {
     text-align: center;
@@ -691,9 +674,7 @@ textarea:focus {
     opacity: 0;
 }
 
-.pulse-ring.delay {
-    animation-delay: 1s;
-}
+.pulse-ring.delay { animation-delay: 1s; }
 
 @keyframes pulse {
     0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.6; }
@@ -726,31 +707,21 @@ textarea:focus {
     font-size: 13px;
 }
 
-/* ── Empty hint ────────────────────────────────────────────────────── */
+/* ── Desktop: side-by-side ─────────────────────────────────────────── */
 
-.empty-hint {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    z-index: 900;
-    pointer-events: none;
-}
+@media (min-width: 768px) {
+    .layout {
+        flex-direction: row;
+    }
 
-.empty-hint p {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: var(--white);
-    text-shadow: 0 2px 12px rgba(0,0,0,0.8);
-}
+    .map-wrap {
+        flex: 1;
+    }
 
-.empty-hint .hint-sub {
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: 2px;
-    color: var(--text-dim);
-    margin-top: 8px;
+    .people-panel {
+        width: 360px;
+        height: 100vh;
+        border-top: none;
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+    }
 }
