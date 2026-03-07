@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEARBY</title>
+    <link rel="stylesheet" href="/static/leaflet.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading" class="overlay">
+        <div class="loading-content">
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring delay"></div>
+            <h2 id="loading-title">SEARCHING</h2>
+            <p id="loading-step" class="loading-step">Scanning the web...</p>
+        </div>
+    </div>
+
+    <!-- Join Modal -->
+    <div id="join-modal" class="overlay">
+        <div class="modal">
+            <button class="modal-close" onclick="closeJoinModal()">&times;</button>
+            <h2 class="modal-title">JOIN EVENT</h2>
+            <form id="join-form">
+                <div class="form-group">
+                    <label for="name">FULL NAME</label>
+                    <input type="text" id="name" required placeholder="Your full name" autocomplete="name">
+                </div>
+                <div class="form-group">
+                    <label for="email">EMAIL</label>
+                    <input type="email" id="email" required placeholder="your@email.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="bio">BIO <span class="optional">(optional)</span></label>
+                    <textarea id="bio" rows="3" placeholder="Current role, company, what you're working on..."></textarea>
+                </div>
+                <label class="terms">
+                    <input type="checkbox" id="terms" required>
+                    <span>I consent to an AI-powered search of my public internet presence</span>
+                </label>
+                <button type="submit" class="btn-primary">JOIN</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="overlay">
+        <div class="modal modal-profile">
+            <button class="modal-close" onclick="closeProfileModal()">&times;</button>
+            <div id="profile-content"></div>
+        </div>
+    </div>
+
+    <!-- MAIN: Full screen map -->
+    <div id="map"></div>
+
+    <!-- Map overlays -->
+    <div class="map-overlay-top">
+        <div class="map-header">
+            <span class="logo-sm">NEARBY</span>
+            <div id="people-count" class="people-count"></div>
+        </div>
+        <div class="map-search">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="search-input" placeholder="Search: astronaut, ML, Tartu...">
+        </div>
+    </div>
+
+    <!-- Add person button -->
+    <button id="btn-add" class="btn-add" onclick="openJoinModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <span>ADD PERSON</span>
+    </button>
+
+    <!-- Bottom panel -->
+    <div id="map-panel" class="map-panel">
+        <div class="panel-handle"></div>
+        <div id="panel-content"></div>
+    </div>
+
+    <script src="/static/leaflet.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
