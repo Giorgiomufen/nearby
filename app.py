@@ -29,7 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DB_PATH = "nearby.db"
+DB_PATH = os.getenv("DB_PATH", "nearby.db")
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY", "")
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
