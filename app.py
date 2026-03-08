@@ -7,6 +7,7 @@ import base64
 import asyncio
 import requests
 from io import BytesIO
+from duckduckgo_search import DDGS
 from datetime import datetime
 from contextlib import contextmanager
 
@@ -31,6 +32,7 @@ app.add_middleware(
 
 DB_PATH = os.getenv("DB_PATH", "nearby.db")
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY", "")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 
@@ -65,30 +67,30 @@ def get_db():
         conn.close()
 
 
-# ── Perplexity AI Search ─────────────────────────────────────────────────────
+# ── AI Profile Search (DuckDuckGo + Groq) ───────────────────────────────────
 
-def search_person(name: str, email: str, bio: str = "") -> dict:
-    if not PERPLEXITY_API_KEY:
-        return {
-            "summary": f"Demo profile for {name}. Set PERPLEXITY_API_KEY for real AI search.",
-            "career": "Not available in demo mode",
-            "education": "Not available in demo mode",
-            "achievements": [],
-            "current_role": "Demo User",
-            "interests": ["technology"],
-            "goals": ["networking"],
-            "social_links": [],
-            "tags": ["demo"],
-        }
+def _ddg_search(query: str, max_results: int = 8) -> str:
+    """Search DuckDuckGo and return concatenated snippets."""
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(query, max_results=max_results))
+        return "\n".join(f"- {r.get('title','')}: {r.get('body','')}" for r in results)
+    except Exception:
+        return ""
 
-    prompt = f"""Search the internet thoroughly for this person:
-Name: {name}
+
+def _llm_synthesize(snippets: str, name: str, email: str, bio: str) -> dict:
+    """Send web snippets to Groq LLM to build a structured profile."""
+    prompt = f"""Based on the following web search results about a person, create a professional profile.
+
+Person: {name}
 Email: {email}
 {f'Context: {bio}' if bio else ''}
 
-Search LinkedIn, personal websites, GitHub, publications, news, university pages, social media, and all public sources.
+Web search results:
+{snippets}
 
-Return ONLY a valid JSON object with these fields:
+Return ONLY a valid JSON object (no markdown fences) with these fields:
 {{
     "summary": "2-3 sentence professional summary",
     "career": "career history and background",
@@ -99,33 +101,79 @@ Return ONLY a valid JSON object with these fields:
     "goals": ["professional goals"],
     "social_links": ["URLs to profiles found"],
     "tags": ["searchable keywords: skills, fields, roles, industries"]
-}}"""
+}}
+
+If the search results don't contain enough info, make reasonable inferences from the name, email domain, and bio. Always return valid JSON."""
+
+    api_key = GROQ_API_KEY or PERPLEXITY_API_KEY
+    if GROQ_API_KEY:
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        model = "llama-3.3-70b-versatile"
+    else:
+        url = "https://api.perplexity.ai/chat/completions"
+        model = "sonar-pro"
+
+    resp = requests.post(
+        url,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": model,
+            "messages": [
+                {"role": "system", "content": "You are a research assistant. Return only valid JSON, no markdown fences."},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.3,
+        },
+        timeout=30,
+    )
+    resp.raise_for_status()
+    content = resp.json()["choices"][0]["message"]["content"]
+
+    if "```json" in content:
+        content = content.split("```json")[1].split("```")[0]
+    elif "```" in content:
+        content = content.split("```")[1].split("```")[0]
+
+    return json.loads(content.strip())
+
+
+def search_person(name: str, email: str, bio: str = "") -> dict:
+    if not GROQ_API_KEY and not PERPLEXITY_API_KEY:
+        return {
+            "summary": f"Demo profile for {name}. Set GROQ_API_KEY for real AI search.",
+            "career": "Not available in demo mode",
+            "education": "Not available in demo mode",
+            "achievements": [],
+            "current_role": "Demo User",
+            "interests": ["technology"],
+            "goals": ["networking"],
+            "social_links": [],
+            "tags": ["demo"],
+        }
 
     try:
-        resp = requests.post(
-            "https://api.perplexity.ai/chat/completions",
-            headers={
-                "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": "sonar-pro",
-                "messages": [
-                    {"role": "system", "content": "You are a research assistant. Return only valid JSON, no markdown fences."},
-                    {"role": "user", "content": prompt},
-                ],
-            },
-            timeout=30,
-        )
-        resp.raise_for_status()
-        content = resp.json()["choices"][0]["message"]["content"]
+        # Search DuckDuckGo for public info
+        email_domain = email.split("@")[-1] if "@" in email else ""
+        queries = [
+            f"{name} {email_domain} professional",
+            f"{name} LinkedIn OR GitHub OR portfolio",
+        ]
+        if bio:
+            queries.append(f"{name} {bio}")
 
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0]
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0]
+        all_snippets = []
+        for q in queries:
+            snippets = _ddg_search(q, max_results=5)
+            if snippets:
+                all_snippets.append(snippets)
 
-        return json.loads(content.strip())
+        combined = "\n".join(all_snippets) if all_snippets else f"No web results found for {name}."
+
+        # Send to LLM for synthesis
+        return _llm_synthesize(combined, name, email, bio)
     except Exception as e:
         return {
             "summary": f"Could not retrieve info for {name}: {e}",
